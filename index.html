@@ -67,10 +67,11 @@ body{font-family:'Noto Sans TC','Inter',sans-serif;background:#08080d;color:#e0e
 .bf{height:100%;background:linear-gradient(90deg,#6C63FF,#9590FF);border-radius:3px;width:0%;transition:width .2s linear}
 .a1p{font-size:10px;color:#333;text-align:center}
 .a2b{width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;position:relative;margin-bottom:10px;flex-shrink:0}
-.a2bg{position:absolute;inset:0;transition:filter .5s}
-.a2sn{position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;transition:all .5s}
-.a2sl{position:absolute;left:0;right:0;height:2px;background:rgba(255,255,255,.1);transition:top .3s linear}
-.a2tg{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.5);border-radius:6px;padding:4px 8px}
+.a2bg{position:absolute;inset:0;transition:filter .4s}
+.a2img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.a2noise{position:absolute;inset:0;pointer-events:none}
+.a2sl{position:absolute;left:0;right:0;height:1.5px;background:rgba(255,255,255,.18);box-shadow:0 0 6px rgba(255,255,255,.2);transition:top .25s linear}
+.a2tg{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.55);border-radius:6px;padding:4px 8px;backdrop-filter:blur(4px)}
 .a2tg p{font-size:9px;color:#bbb;margin:0}
 .a2d{font-size:10px;color:#444;text-align:center}
 .a3h{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-shrink:0}
@@ -198,7 +199,7 @@ var T=[
     {t:'添加繪本溫度',x:'Adding illustration warmth and charm. Dragon with gentle expression in cozy reading pose among flora…'}]}
 ];
 var LS=[[0,1,2,3,4,5],[1,2,3,4,5,0],[2,3,4,5,0,1],[3,4,5,0,1,2],[4,5,0,1,2,3],[5,0,1,2,3,4]];
-var DUR=25000,fA,fB,order,ti,af=null,tmrs=[],sT,pau,pauT,totP,n1,n2,dcI=null;
+var DUR=25000,fA,fB,order,ti,af=null,tmrs=[],sT,pau,pauseStart,totP,n1,n2,dcI=null;
 
 function show(id){document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on')});document.getElementById(id).classList.add('on')}
 function toast(m){var d=document.createElement('div');d.className='toast';d.innerHTML='<div class="toast-inner">'+m+'</div>';document.body.appendChild(d);setTimeout(function(){d.remove()},2500)}
@@ -208,20 +209,21 @@ function showTask(){var t=T[order[ti]];document.getElementById('tN').textContent
 function bld(t){
   var b='<div class="pb"><p class="pl">Your prompt</p><p class="pt">\u201c'+t.p+'\u201d</p></div>';
   if(fA==='1')return b+'<div class="a1c"><div class="sp"></div><p class="a1s" id="sg">'+t.s[0]+'</p><p class="a1t" id="st2">Diffusion step 0/50</p><div class="bw"><div class="bf" id="pf"></div></div><p class="a1p" id="pc">0%</p></div>';
-  if(fA==='2')return b+'<div class="a2b"><div class="a2bg" id="bg" style="background:'+t.g+';filter:blur(20px)"></div><div class="a2sn" id="sn2" style="background:'+t.sn+';filter:blur(16px);opacity:.3"></div><div class="a2sl" id="sl" style="top:0%"></div><div class="a2tg"><p id="lb">Initializing\u2026 0%</p></div></div><p class="a2d" id="ds">Starting generation\u2026</p>';
+  if(fA==='2')return b+'<div class="a2b"><img class="a2img a2bg" id="bg" src="'+t.img+'" style="filter:blur(22px) brightness(.55) saturate(.6)"><canvas class="a2noise" id="nv"></canvas><div class="a2sl" id="sl" style="top:0%"></div><div class="a2tg"><p id="lb">Initializing\u2026 0%</p></div></div><p class="a2d" id="ds">Starting generation\u2026</p>';
   return b+'<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0"><div class="a3h"><div class="a3av">AI</div><p class="a3lb">Thinking\u2026</p></div><div class="a3bs">'+t.n.map(function(x,i){return'<div class="a3k" id="bk'+i+'"><p class="a3t">'+x.t+'</p><p class="a3x" id="bx'+i+'"></p></div>'}).join('')+'</div></div>';
 }
 
 function startStim(){var t=T[order[ti]];document.getElementById('ac').innerHTML=bld(t);document.getElementById('abtx').textContent='Generating\u2026';document.getElementById('dov').classList.remove('on');show('stim');run(t)}
 function clr(){if(af)cancelAnimationFrame(af);af=null;tmrs.forEach(function(t){clearTimeout(t)});tmrs=[];if(dcI)clearInterval(dcI);dcI=null}
-function el(){return pau?pauT:Date.now()-sT-totP}
+function el(){return pau?pauseStart-sT-totP:Date.now()-sT-totP}
 function pr(){return Math.min(el()/DUR,1)}
 
 function run(t){
-  clr();sT=Date.now();pau=false;pauT=0;totP=0;n1=false;n2=false;var ci=[0,0,0];
+  clr();sT=Date.now();pau=false;pauseStart=0;totP=0;n1=false;n2=false;var ci=[0,0,0],maxP=0;
   function tick(){
     if(pau){af=requestAnimationFrame(tick);return}
-    var p=pr(),pct=Math.round(p*100);
+    var p=Math.max(pr(),maxP);maxP=p;
+    var pct=Math.round(p*100);
     if(fA==='1'){
       var ss=[{p:0,l:t.s[0]},{p:.15,l:t.s[1]},{p:.3,l:t.s[2]},{p:.6,l:t.s[3]},{p:.85,l:t.s[4]}],c=ss[0].l;
       for(var i=0;i<ss.length;i++)if(p>=ss[i].p)c=ss[i].l;
@@ -230,14 +232,29 @@ function run(t){
       if(e('sg'))e('sg').textContent=c;if(e('st2'))e('st2').textContent='Diffusion step '+Math.round(p*50)+'/50';
     }else if(fA==='2'){
       var e2=function(id){return document.getElementById(id)};
-      if(p<=.4){var bl=20-(p/.4)*15;if(e2('bg'))e2('bg').style.filter='blur('+bl+'px)';if(e2('sn2')){e2('sn2').style.filter='blur('+(16-(p/.4)*10)+'px)';e2('sn2').style.opacity=.3+(p/.4)*.4}if(e2('sl'))e2('sl').style.top=(p/.4*85)+'%';if(e2('lb'))e2('lb').textContent='Early structure \u00b7 '+pct+'%';if(e2('ds'))e2('ds').textContent='Structural features emerging\u2026'}
-      else{if(e2('bg'))e2('bg').style.filter='blur(5px)';if(e2('sl'))e2('sl').style.opacity='0';if(e2('lb'))e2('lb').textContent='Processing \u00b7 '+pct+'%';if(e2('ds'))e2('ds').textContent='Refining generation\u2026'}
+      var bl2=Math.max(22-p*17,5);
+      var br=Math.max(0.55+p*0.45,0.55);
+      var sat=Math.max(0.6+p*0.4,0.6);
+      if(e2('bg'))e2('bg').style.filter='blur('+bl2.toFixed(1)+'px) brightness('+br.toFixed(2)+') saturate('+sat.toFixed(2)+')';
+      var nv=e2('nv');
+      if(nv){
+        var noiseAlpha=Math.max(0.72*(1-p*1.3),0);
+        var sz=nv.parentElement.offsetWidth||200;
+        if(nv.width!==sz){nv.width=sz;nv.height=sz}
+        var ctx=nv.getContext('2d');
+        var idat=ctx.createImageData(sz,sz);
+        var dd=idat.data;
+        for(var k=0;k<dd.length;k+=4){var v=Math.random()*255|0;dd[k]=v;dd[k+1]=v;dd[k+2]=v;dd[k+3]=(noiseAlpha*255)|0}
+        ctx.putImageData(idat,0,0);
+      }
+      if(p<=.4){if(e2('sl'))e2('sl').style.top=(p/.4*92)+'%';if(e2('sl'))e2('sl').style.opacity='1';if(e2('lb'))e2('lb').textContent='Early structure \u00b7 '+pct+'%';if(e2('ds'))e2('ds').textContent='Structural features emerging\u2026'}
+      else{if(e2('sl'))e2('sl').style.opacity='0';if(e2('lb'))e2('lb').textContent='Processing \u00b7 '+pct+'%';if(e2('ds'))e2('ds').textContent='Refining generation\u2026'}
     }else{
       var bs=t.n,bd=1/bs.length;
       for(var i=0;i<bs.length;i++){var s2=i*bd,bk=document.getElementById('bk'+i),bx=document.getElementById('bx'+i);if(!bk||!bx)continue;
         if(p>=s2){if(!bk.classList.contains('v'))bk.classList.add('v');var bp=Math.min((p-s2)/(bd*.85),1),tg=Math.floor(bp*bs[i].x.length);if(tg>ci[i]){ci[i]=tg;bx.innerHTML=tg>=bs[i].x.length?bs[i].x:bs[i].x.substring(0,tg)+'<span class="cur">|</span>'}}}
     }
-    if(fB==='2'){if(!n1&&p>=.33){n1=true;showDec()}if(!n2&&p>=.66){n2=true;showDec()}}
+    if(fB==='2'){if(!n1&&p>=.33){n1=true;showDec();af=requestAnimationFrame(tick);return}if(!n2&&p>=.66){n2=true;showDec();af=requestAnimationFrame(tick);return}}
     if(p>=1){clr();showRes(t);return}
     af=requestAnimationFrame(tick);
   }
@@ -252,8 +269,8 @@ function showRes(t){
   },500);
 }
 
-function showDec(){pau=true;pauT=el();document.getElementById('dov').classList.add('on');var r=5,tm=document.getElementById('dtm');tm.textContent='Auto-continue: '+r+'s';dcI=setInterval(function(){r--;tm.textContent='Auto-continue: '+r+'s';if(r<=0)decide('c')},1000)}
-function decide(c){if(dcI)clearInterval(dcI);dcI=null;document.getElementById('dov').classList.remove('on');if(c==='a'){clr();showRes(T[order[ti]]);return}totP+=Date.now()-(sT+pauT+totP);pau=false}
+function showDec(){pau=true;pauseStart=Date.now();document.getElementById('dov').classList.add('on');var r=5,tm=document.getElementById('dtm');tm.textContent='Auto-continue: '+r+'s';dcI=setInterval(function(){r--;tm.textContent='Auto-continue: '+r+'s';if(r<=0)decide('c')},1000)}
+function decide(c){if(dcI)clearInterval(dcI);dcI=null;document.getElementById('dov').classList.remove('on');if(c==='a'){clr();showRes(T[order[ti]]);return}totP+=Date.now()-pauseStart;pau=false}
 </script>
 </body>
 </html>
