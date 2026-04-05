@@ -67,12 +67,11 @@ body{font-family:'Noto Sans TC','Inter',sans-serif;background:#08080d;color:#e0e
 .bf{height:100%;background:linear-gradient(90deg,#6C63FF,#9590FF);border-radius:3px;width:0%;transition:width .2s linear}
 .a1p{font-size:10px;color:#333;text-align:center}
 .a2b{width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;position:relative;margin-bottom:10px;flex-shrink:0}
-.a2bg{position:absolute;inset:0;background-size:cover;background-position:center;transition:filter 0.8s ease}
-.a2ov{position:absolute;inset:0;background:rgba(8,8,13,0.72);transition:opacity 1s ease}
-.a2ns{position:absolute;inset:0;opacity:0.18;pointer-events:none;transition:opacity 0.8s ease}
-.a2sl{position:absolute;left:0;right:0;height:2px;background:rgba(255,255,255,.15);box-shadow:0 0 6px rgba(144,135,255,.5);transition:top 0.3s linear}
-.a2tg{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.55);border-radius:6px;padding:4px 8px;backdrop-filter:blur(4px)}
-.a2tg p{font-size:9px;color:#bbb;margin:0}
+.a2img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:filter 0.4s linear}
+.a2noise{position:absolute;inset:0;opacity:0;transition:opacity 0.4s linear;mix-blend-mode:screen}
+.a2sl{position:absolute;left:0;right:0;height:2px;background:rgba(255,255,255,.2);transition:top 0.3s linear;box-shadow:0 0 6px rgba(255,255,255,.4)}
+.a2tg{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.55);border-radius:6px;padding:4px 8px}
+.a2tg p{font-size:9px;color:#ccc;margin:0}
 .a2d{font-size:10px;color:#444;text-align:center}
 .a3h{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-shrink:0}
 .a3av{width:22px;height:22px;border-radius:50%;background:#6C63FF;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;flex-shrink:0}
@@ -209,7 +208,7 @@ function showTask(){var t=T[order[ti]];document.getElementById('tN').textContent
 function bld(t){
   var b='<div class="pb"><p class="pl">Your prompt</p><p class="pt">\u201c'+t.p+'\u201d</p></div>';
   if(fA==='1')return b+'<div class="a1c"><div class="sp"></div><p class="a1s" id="sg">'+t.s[0]+'</p><p class="a1t" id="st2">Diffusion step 0/50</p><div class="bw"><div class="bf" id="pf"></div></div><p class="a1p" id="pc">0%</p></div>';
-  if(fA==='2')return b+'<div class="a2b"><div class="a2bg" id="bg" style="background-image:url(\''+t.img+'\');filter:blur(28px) brightness(0.55)"></div><canvas class="a2ns" id="ns" width="320" height="320"></canvas><div class="a2ov" id="ov" style="opacity:0.72"></div><div class="a2sl" id="sl" style="top:0%"></div><div class="a2tg"><p id="lb">Initializing\u2026 0%</p></div></div><p class="a2d" id="ds">Starting generation\u2026</p>';
+  if(fA==='2')return b+'<div class="a2b"><img class="a2img" id="bg" src="'+t.img+'" alt="generating" style="filter:blur(28px) brightness(0.5) saturate(0.3)"><canvas class="a2noise" id="nc" style="opacity:0.55"></canvas><div class="a2sl" id="sl" style="top:0%"></div><div class="a2tg"><p id="lb">Initializing\u2026 0%</p></div></div><p class="a2d" id="ds">Starting generation\u2026</p>';
   return b+'<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0"><div class="a3h"><div class="a3av">AI</div><p class="a3lb">Thinking\u2026</p></div><div class="a3bs">'+t.n.map(function(x,i){return'<div class="a3k" id="bk'+i+'"><p class="a3t">'+x.t+'</p><p class="a3x" id="bx'+i+'"></p></div>'}).join('')+'</div></div>';
 }
 
@@ -232,23 +231,25 @@ function run(t){
       if(e('sg'))e('sg').textContent=c;if(e('st2'))e('st2').textContent='Diffusion step '+Math.round(p*50)+'/50';
     }else if(fA==='2'){
       var e2=function(id){return document.getElementById(id)};
-      // blur: 28px → 2px over full duration
-      var blurVal=28-(p*26);
-      // brightness: 0.55 → 1.0
-      var brightVal=0.55+(p*0.45);
-      if(e2('bg'))e2('bg').style.filter='blur('+blurVal.toFixed(1)+'px) brightness('+brightVal.toFixed(2)+')';
-      // dark overlay: 0.72 → 0.0
-      if(e2('ov'))e2('ov').style.opacity=(0.72*(1-p)).toFixed(3);
-      // noise canvas: fade out noise as image emerges
-      var nsEl=e2('ns');
-      if(nsEl){var nc=nsEl.getContext('2d');var noiseOp=0.18*(1-p);nsEl.style.opacity=noiseOp.toFixed(3);
-        if(p<0.85){nc.clearRect(0,0,320,320);for(var ni=0;ni<4000;ni++){nc.fillStyle='rgba('+(Math.random()>0.5?255:0)+','+(Math.random()>0.5?255:0)+','+(Math.random()>0.5?255:0)+','+(Math.random()*0.45)+')';nc.fillRect(Math.random()*320,Math.random()*320,1.5,1.5);}}}
-      // scan line
-      if(e2('sl')){if(p<0.9){e2('sl').style.top=(p*100)+'%';e2('sl').style.opacity='1';}else{e2('sl').style.opacity='0';}}
-      // label
-      var phase=p<0.25?'結構浮現 Structure':p<0.55?'細節生成 Detail':p<0.8?'色彩填充 Color':'影像精化 Refining';
-      if(e2('lb'))e2('lb').textContent=phase+' \u00b7 '+Math.round(p*100)+'%';
-      if(e2('ds'))e2('ds').textContent=p<0.3?'Structural features emerging\u2026':p<0.6?'Detail and texture forming\u2026':p<0.85?'Color and lighting rendering\u2026':'Final image refining\u2026';
+      /* blur: 28→0px, brightness: 0.5→1, saturate: 0.3→1 */
+      var blurPx   = Math.max(0, 28 - p * 28);
+      var bright   = 0.5 + p * 0.5;
+      var sat      = 0.3 + p * 0.7;
+      if(e2('bg'))e2('bg').style.filter='blur('+blurPx.toFixed(1)+'px) brightness('+bright.toFixed(2)+') saturate('+sat.toFixed(2)+')';
+      /* noise canvas: draw per frame, fade opacity 0.55→0 */
+      var nc=e2('nc');if(nc){
+        var box=nc.parentElement.getBoundingClientRect();
+        if(nc.width!==Math.round(box.width)){nc.width=Math.round(box.width);nc.height=Math.round(box.width)}
+        var ctx=nc.getContext('2d');
+        var id2=ctx.createImageData(nc.width,nc.height);
+        for(var q=0;q<id2.data.length;q+=4){var v=Math.random()*255|0;id2.data[q]=v;id2.data[q+1]=v;id2.data[q+2]=v;id2.data[q+3]=255}
+        ctx.putImageData(id2,0,0);
+        nc.style.opacity=Math.max(0,(0.55-p*0.6)).toFixed(3);
+      }
+      if(e2('sl')){if(p<1){e2('sl').style.top=(p*100)+'%';e2('sl').style.opacity='1'}else{e2('sl').style.opacity='0'}}
+      var phase=p<.33?'Early structure':p<.66?'Structure forming':'Refining detail';
+      if(e2('lb'))e2('lb').textContent=phase+' \u00b7 '+pct+'%';
+      if(e2('ds'))e2('ds').textContent=p<.33?'Structural features emerging\u2026':p<.66?'Detail pass in progress\u2026':'Finalizing refinement\u2026';
     }else{
       var bs=t.n,bd=1/bs.length;
       for(var i=0;i<bs.length;i++){var s2=i*bd,bk=document.getElementById('bk'+i),bx=document.getElementById('bx'+i);if(!bk||!bx)continue;
