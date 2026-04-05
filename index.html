@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>AI Image Generation — Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans TC','Inter',sans-serif;background:#08080d;color:#e0e0e0;height:100%;overflow:hidden;-webkit-font-smoothing:antialiased}
+.scr{display:none;position:fixed;inset:0}
+.scr.on{display:flex;flex-direction:column}
+.vc{flex:1;display:flex;flex-direction:column;align-items:center;padding:0 20px;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.card{max-width:380px;width:100%;margin:auto 0;padding:32px 0 40px;flex-shrink:0}
+.btn{display:block;width:100%;padding:15px;font-size:15px;font-weight:500;background:#6C63FF;color:#fff;border:none;border-radius:14px;cursor:pointer;font-family:inherit;transition:all .12s;text-align:center}
+.btn:active{transform:scale(.97);background:#5a52e0}
+.btn-g{background:rgba(255,255,255,.04);color:#999;border:1px solid rgba(255,255,255,.08)}
+.btn-g:active{background:rgba(255,255,255,.08)}
+.iI{font-size:40px;margin-bottom:10px}
+.iT{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;line-height:1.35}
+.iS{font-size:12px;color:#666;margin-bottom:18px}
+.iB{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:14px 16px;text-align:left;margin-bottom:18px}
+.iB p{font-size:13px;color:#bbb;line-height:1.7;margin-bottom:5px}
+.iB p:last-child{margin:0}
+.hi{color:#9590FF;font-weight:500}
+.pT{font-size:17px;font-weight:600;color:#fff;margin-bottom:4px}
+.pS{font-size:12px;color:#555;margin-bottom:16px}
+.rh{font-size:11px;font-weight:500;color:#e8943a;margin-bottom:8px;padding-left:2px}
+.cg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.cb{background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:all .15s}
+.cb:active{border-color:#6C63FF;background:rgba(108,99,255,.08)}
+.cb .cd{font-size:15px;font-weight:700;color:#fff;font-family:'Inter',monospace;margin-bottom:2px}
+.cb .cf{font-size:10px;color:#9590FF;margin-bottom:1px}
+.cb .cl{font-size:10px;color:#444}
+.tn{font-size:11px;color:#6C63FF;font-weight:600;letter-spacing:.5px;margin-bottom:8px}
+.tc{font-size:16px;color:#fff;font-weight:500;margin-bottom:4px}
+.tsc{font-size:13px;color:#666;margin-bottom:16px}
+.tpb{background:rgba(108,99,255,.06);border-left:3px solid #6C63FF;border-radius:0 12px 12px 0;padding:14px 16px;text-align:left;margin-bottom:24px}
+.tpb p{font-size:12px;color:#b0aaff;line-height:1.5;font-style:italic}
+#stim{background:#08080d}
+#stim .vc{padding:0}
+.ph{width:100%;max-width:393px;flex:1;display:flex;flex-direction:column;background:#111;overflow:hidden;position:relative}
+@media(min-width:420px){.ph{border-radius:36px;max-height:740px;box-shadow:inset 0 0 0 2px #2a2a2a,0 20px 60px rgba(0,0,0,.5);margin:auto}#stim .vc{padding:16px}}
+.ps{width:100%;flex:1;background:#12122a;display:flex;flex-direction:column;overflow:hidden;position:relative}
+@media(min-width:420px){.ps{border-radius:28px}}
+.sb{padding:8px 20px 4px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.sb .tm{font-size:11px;color:#777;font-family:'Inter',sans-serif;font-weight:500}
+.ba{width:16px;height:9px;border:1.5px solid #777;border-radius:2px;position:relative}
+.ba::after{content:'';position:absolute;right:2px;top:2px;bottom:2px;width:55%;background:#777;border-radius:1px}
+.ah2{padding:8px 20px;border-bottom:.5px solid rgba(255,255,255,.05);flex-shrink:0}
+.ah2 h3{font-size:14px;font-weight:600;color:#fff;font-family:'Inter',sans-serif}
+.ac{flex:1;display:flex;flex-direction:column;padding:14px 16px;overflow:hidden;min-height:0}
+.abt{padding:10px 20px;text-align:center;flex-shrink:0;border-top:.5px solid rgba(255,255,255,.03)}
+.abt p{font-size:10px;color:#2a2a2a;margin:0}
+.pb{background:rgba(255,255,255,.04);border-radius:12px;padding:10px 12px;margin-bottom:12px;flex-shrink:0}
+.pb .pl{font-size:9px;color:#444;margin-bottom:2px}
+.pb .pt{font-size:11px;color:#999;line-height:1.45;font-family:'Inter',sans-serif}
+.a1c{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sp{width:48px;height:48px;border:3px solid rgba(255,255,255,.06);border-top:3px solid #6C63FF;border-radius:50%;margin-bottom:16px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.a1s{font-size:12px;color:#9590FF;font-weight:500;margin-bottom:4px;text-align:center}
+.a1t{font-size:10px;color:#444;margin-bottom:12px;text-align:center}
+.bw{width:100%;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.bf{height:100%;background:linear-gradient(90deg,#6C63FF,#9590FF);border-radius:3px;width:0%;transition:width .2s linear}
+.a1p{font-size:10px;color:#333;text-align:center}
+.a2b{width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;position:relative;margin-bottom:10px;flex-shrink:0}
+.a2bg{position:absolute;inset:0;transition:filter .5s}
+.a2sn{position:absolute;top:35%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;transition:all .5s}
+.a2sl{position:absolute;left:0;right:0;height:2px;background:rgba(255,255,255,.1);transition:top .3s linear}
+.a2tg{position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.5);border-radius:6px;padding:4px 8px}
+.a2tg p{font-size:9px;color:#bbb;margin:0}
+.a2d{font-size:10px;color:#444;text-align:center}
+.a3h{display:flex;align-items:center;gap:7px;margin-bottom:10px;flex-shrink:0}
+.a3av{width:22px;height:22px;border-radius:50%;background:#6C63FF;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;flex-shrink:0}
+.a3lb{font-size:10px;color:#9590FF;font-weight:500}
+.a3bs{padding-left:29px;flex:1;overflow-y:auto;min-height:0}
+.a3k{background:rgba(108,99,255,.06);border-left:2px solid #6C63FF;border-radius:0 8px 8px 0;padding:8px 10px;margin-bottom:8px;opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+.a3k.v{opacity:1;transform:translateY(0)}
+.a3t{font-size:10px;color:#b0aaff;font-weight:500;margin-bottom:2px}
+.a3x{font-size:10px;color:#666;line-height:1.55}
+.cur{color:#9590FF;animation:bk .8s infinite}
+@keyframes bk{0%,100%{opacity:1}50%{opacity:0}}
+.dov{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s}
+.dov.on{opacity:1;pointer-events:auto}
+.dpn{width:84%;background:rgba(18,18,42,.96);border:1px solid rgba(232,148,58,.2);border-radius:16px;padding:18px}
+.dpn .dtt{font-size:13px;color:#e8943a;font-weight:600;text-align:center;margin-bottom:12px}
+.db{width:100%;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:500;cursor:pointer;margin-bottom:8px;font-family:inherit;transition:all .12s}
+.db.dp1{background:#6C63FF;color:#fff}
+.db.dp1:active{background:#5a52e0}
+.db.ds1{background:rgba(255,255,255,.04);color:#999;border:1px solid rgba(255,255,255,.08)}
+.db.ds1:active{background:rgba(255,255,255,.08)}
+.dtm{font-size:10px;color:#333;text-align:center;margin-top:2px}
+.ri{width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;margin-bottom:10px;flex-shrink:0;position:relative}
+.ri img{width:100%;height:100%;object-fit:cover;animation:fu .5s ease}
+@keyframes fu{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.ri .ck{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(108,99,255,.85);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;animation:pp .35s ease}
+@keyframes pp{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.rt{font-size:11px;color:#6C63FF;text-align:center;font-weight:500}
+.toast{position:fixed;top:0;left:0;right:0;z-index:999;display:flex;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 20px 12px;pointer-events:none}
+.toast-inner{background:rgba(108,99,255,.92);color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:12px;animation:slideD .4s ease;pointer-events:auto}
+@keyframes slideD{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="scr on" id="intro"><div class="vc"><div class="card" style="text-align:center">
+  <p class="iI">🎨</p>
+  <h1 class="iT">AI 圖像生成<br>等待體驗研究</h1>
+  <p class="iS">Waiting Experience in AI Image Generation</p>
+  <div class="iB">
+    <p>當 AI 為您生成圖片時，螢幕上的<span class="hi">等待畫面</span>會如何影響您的感受？</p>
+    <p>本實驗模擬了 <span class="hi">6 種不同的等待介面</span>，您將體驗其中一種，觀看 <span class="hi">6 次模擬的圖像生成</span>（每次約 25 秒）。</p>
+  </div>
+  <button class="btn" onclick="show('pick')">開始選擇條件 →</button>
+</div></div></div>
+
+<div class="scr" id="pick"><div class="vc"><div class="card" style="text-align:center">
+  <p class="pT">選擇實驗條件</p>
+  <p class="pS">Select experimental condition</p>
+  <p class="rh">B1 — 被動等待 Passive</p>
+  <div class="cg">
+    <div class="cb" onclick="go('1','1')"><p class="cf">Procedural</p><p class="cd">A1B1</p><p class="cl">進度條</p></div>
+    <div class="cb" onclick="go('2','1')"><p class="cf">Generative</p><p class="cd">A2B1</p><p class="cl">視覺預覽</p></div>
+    <div class="cb" onclick="go('3','1')"><p class="cf">Interpretive</p><p class="cd">A3B1</p><p class="cl">語義敘述</p></div>
+  </div>
+  <p class="rh">B2 — 決策節點 Decision Nodes</p>
+  <div class="cg">
+    <div class="cb" onclick="go('1','2')"><p class="cf">Procedural</p><p class="cd">A1B2</p><p class="cl">進度條+決策</p></div>
+    <div class="cb" onclick="go('2','2')"><p class="cf">Generative</p><p class="cd">A2B2</p><p class="cl">預覽+決策</p></div>
+    <div class="cb" onclick="go('3','2')"><p class="cf">Interpretive</p><p class="cd">A3B2</p><p class="cl">敘述+決策</p></div>
+  </div>
+  <button class="btn btn-g" onclick="show('intro')" style="font-size:13px;padding:12px">← 返回說明</button>
+</div></div></div>
+
+<div class="scr" id="task"><div class="vc"><div class="card" style="text-align:center">
+  <p class="tn" id="tN"></p>
+  <p class="tc" id="tC"></p>
+  <p class="tsc" id="tS"></p>
+  <div class="tpb"><p id="tP"></p></div>
+  <button class="btn" onclick="startStim()">開始生成 Generate</button>
+</div></div></div>
+
+<div class="scr" id="stim"><div class="vc">
+<div class="ph"><div class="ps">
+  <div class="sb"><span class="tm">9:41</span><div class="ba"></div></div>
+  <div class="ah2"><h3>AI Image Generator</h3></div>
+  <div class="ac" id="ac"></div>
+  <div class="abt"><p id="abtx">Generating…</p></div>
+  <div class="dov" id="dov"><div class="dpn">
+    <p class="dtt">您想要怎麼做？</p>
+    <button class="db dp1" onclick="decide('c')">繼續生成 Continue</button>
+    <button class="db ds1" onclick="decide('a')">採用目前結果 Adopt</button>
+    <p class="dtm" id="dtm">Auto-continue: 5s</p>
+  </div></div>
+</div></div>
+</div></div>
+
+<script>
+var T=[
+{id:1,c:'社群媒體',sc:'為 Instagram 貼文製作圖片',p:'A cozy coffee shop interior with warm lighting and latte art, lifestyle photography style',img:'task1.jpg',
+ s:['Analyzing prompt…','Generating composition…','Diffusion processing…','Refining lighting…','Finalizing output…'],
+ g:'linear-gradient(180deg,#2a1a1a,#4a2a1a 25%,#8a5a30 45%,#c89060 60%,#3a2a1a 80%,#1a1210)',sn:'radial-gradient(circle,rgba(255,200,120,.5),transparent 70%)',
+ n:[{t:'解構視覺元素',x:'Parsing "cozy coffee shop", "warm lighting", "latte art" as primary scene elements. Identifying lifestyle photography conventions…'},
+    {t:'構建場景構圖',x:'Composing depth of field with soft bokeh background. Positioning ceramic cup as focal point with steam wisps…'},
+    {t:'渲染光影氛圍',x:'Applying golden-hour palette with warm amber tones. Soft directional window light across wooden textures…'}]},
+{id:2,c:'手機桌布',sc:'生成一張手機桌布圖片',p:'A serene mountain lake at sunrise with mist and reflections, 4K wallpaper',img:'task2.jpg',
+ s:['Analyzing prompt…','Building landscape…','Diffusion processing…','Enhancing reflections…','Finalizing resolution…'],
+ g:'linear-gradient(180deg,#1a1030,#3a2050 20%,#e89040 40%,#f0c060 55%,#2a4060 70%,#0a1a30)',sn:'radial-gradient(circle,rgba(255,180,80,.6),transparent 70%)',
+ n:[{t:'辨識景觀元素',x:'Identifying "mountain lake", "sunrise", "mist" as core components. Mapping 4K wallpaper aspect ratios…'},
+    {t:'建立對稱構圖',x:'Establishing symmetrical reflection with horizon at lower third. Layering mist across mountain silhouettes…'},
+    {t:'施加晨光效果',x:'Atmospheric perspective with dawn gradients. Enhancing mirror effect with soft chromatic diffusion…'}]},
+{id:3,c:'工作簡報',sc:'為簡報製作概念插畫',p:'A futuristic smart city with autonomous vehicles and green buildings, flat illustration style',img:'task3.jpg',
+ s:['Analyzing prompt…','Constructing layout…','Diffusion processing…','Adding details…','Finalizing style…'],
+ g:'linear-gradient(180deg,#0a2040,#1a3060 25%,#2a5080 45%,#40a070 60%,#1a3050 80%,#0a1020)',sn:'radial-gradient(circle,rgba(100,200,150,.4),transparent 70%)',
+ n:[{t:'解析未來概念',x:'Parsing "smart city", "autonomous vehicles", "green buildings" as design elements. Referencing flat illustration…'},
+    {t:'排列城市佈局',x:'Arranging isometric cityscape with clean geometric forms. Distributing vehicle paths and rooftop elements…'},
+    {t:'套用插畫配色',x:'Applying flat illustration palette with bold saturated fills. Clean vector-style edges and tech language…'}]},
+{id:4,c:'藝術探索',sc:'探索 AI 藝術風格',p:'A cat wearing a space helmet floating among galaxies, digital painting in Studio Ghibli style',img:'task4.jpg',
+ s:['Analyzing prompt…','Generating character…','Diffusion processing…','Applying Ghibli style…','Finalizing…'],
+ g:'linear-gradient(180deg,#0a0a30,#1a1050 25%,#3a2070 45%,#6040a0 55%,#2a1060 75%,#0a0a20)',sn:'radial-gradient(circle,rgba(180,150,255,.5),transparent 70%)',
+ n:[{t:'解讀奇幻元素',x:'Interpreting "cat in space helmet", "galaxies" as whimsical sci-fi. Identifying Ghibli aesthetic markers…'},
+    {t:'融合宮崎駿風格',x:'Blending Ghibli softness with cosmic scale. Expressive feline features within rounded helmet against nebula…'},
+    {t:'調和繪畫筆觸',x:'Harmonizing digital brushwork with hand-drawn warmth. Ghibli-signature pastel galaxies and dreamy glow…'}]},
+{id:5,c:'產品概念',sc:'為網路商店視覺化產品',p:'A minimalist ceramic mug on a wooden table with soft natural light, product photography',img:'task5.jpg',
+ s:['Analyzing prompt…','Modeling product…','Diffusion processing…','Adjusting lighting…','Finalizing quality…'],
+ g:'linear-gradient(180deg,#e8e0d0,#d8d0c0 25%,#c8c0b0 45%,#b8b0a0 60%,#a8a090 80%,#989080)',sn:'radial-gradient(circle,rgba(255,250,240,.3),transparent 70%)',
+ n:[{t:'分析產品攝影',x:'Analyzing "ceramic mug", "wooden table", "soft light" as commercial photography cues. Clean product framing…'},
+    {t:'佈置柔光場景',x:'Staging soft directional window lighting on wood grain. Positioning mug with negative space for appeal…'},
+    {t:'完成商業構圖',x:'Finalizing commercial composition with shallow depth of field. Subtle shadow mapping and texture rendering…'}]},
+{id:6,c:'故事繪本',sc:'生成兒童故事繪本插畫',p:'A friendly dragon reading a book under a giant mushroom in an enchanted forest, watercolor illustration',img:'task6.jpg',
+ s:['Analyzing prompt…','Sketching character…','Diffusion processing…','Applying watercolor…','Finalizing…'],
+ g:'linear-gradient(180deg,#1a3020,#2a5030 25%,#40804a 45%,#60a058 55%,#3a6040 75%,#1a3020)',sn:'radial-gradient(circle,rgba(200,255,150,.4),transparent 70%)',
+ n:[{t:'構想繪本場景',x:'Envisioning "friendly dragon", "reading", "giant mushroom", "enchanted forest" as storybook tableau…'},
+    {t:'疊加水彩質感',x:'Layering watercolor washes with organic edges. Building forest canopy with dappled light through mushroom…'},
+    {t:'添加繪本溫度',x:'Adding illustration warmth and charm. Dragon with gentle expression in cozy reading pose among flora…'}]}
+];
+var LS=[[0,1,2,3,4,5],[1,2,3,4,5,0],[2,3,4,5,0,1],[3,4,5,0,1,2],[4,5,0,1,2,3],[5,0,1,2,3,4]];
+var DUR=25000,fA,fB,order,ti,af=null,tmrs=[],sT,pau,pauT,totP,n1,n2,dcI=null;
+
+function show(id){document.querySelectorAll('.scr').forEach(function(s){s.classList.remove('on')});document.getElementById(id).classList.add('on')}
+function toast(m){var d=document.createElement('div');d.className='toast';d.innerHTML='<div class="toast-inner">'+m+'</div>';document.body.appendChild(d);setTimeout(function(){d.remove()},2500)}
+function go(a,b){fA=a;fB=b;order=LS[Math.floor(Math.random()*LS.length)];ti=0;showTask()}
+function showTask(){var t=T[order[ti]];document.getElementById('tN').textContent='TASK '+(ti+1)+' / 6';document.getElementById('tC').textContent=t.c;document.getElementById('tS').textContent=t.sc;document.getElementById('tP').textContent='\u201c'+t.p+'\u201d';show('task')}
+
+function bld(t){
+  var b='<div class="pb"><p class="pl">Your prompt</p><p class="pt">\u201c'+t.p+'\u201d</p></div>';
+  if(fA==='1')return b+'<div class="a1c"><div class="sp"></div><p class="a1s" id="sg">'+t.s[0]+'</p><p class="a1t" id="st2">Diffusion step 0/50</p><div class="bw"><div class="bf" id="pf"></div></div><p class="a1p" id="pc">0%</p></div>';
+  if(fA==='2')return b+'<div class="a2b"><div class="a2bg" id="bg" style="background:'+t.g+';filter:blur(20px)"></div><div class="a2sn" id="sn2" style="background:'+t.sn+';filter:blur(16px);opacity:.3"></div><div class="a2sl" id="sl" style="top:0%"></div><div class="a2tg"><p id="lb">Initializing\u2026 0%</p></div></div><p class="a2d" id="ds">Starting generation\u2026</p>';
+  return b+'<div style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0"><div class="a3h"><div class="a3av">AI</div><p class="a3lb">Thinking\u2026</p></div><div class="a3bs">'+t.n.map(function(x,i){return'<div class="a3k" id="bk'+i+'"><p class="a3t">'+x.t+'</p><p class="a3x" id="bx'+i+'"></p></div>'}).join('')+'</div></div>';
+}
+
+function startStim(){var t=T[order[ti]];document.getElementById('ac').innerHTML=bld(t);document.getElementById('abtx').textContent='Generating\u2026';document.getElementById('dov').classList.remove('on');show('stim');run(t)}
+function clr(){if(af)cancelAnimationFrame(af);af=null;tmrs.forEach(function(t){clearTimeout(t)});tmrs=[];if(dcI)clearInterval(dcI);dcI=null}
+function el(){return pau?pauT:Date.now()-sT-totP}
+function pr(){return Math.min(el()/DUR,1)}
+
+function run(t){
+  clr();sT=Date.now();pau=false;pauT=0;totP=0;n1=false;n2=false;var ci=[0,0,0];
+  function tick(){
+    if(pau){af=requestAnimationFrame(tick);return}
+    var p=pr(),pct=Math.round(p*100);
+    if(fA==='1'){
+      var ss=[{p:0,l:t.s[0]},{p:.15,l:t.s[1]},{p:.3,l:t.s[2]},{p:.6,l:t.s[3]},{p:.85,l:t.s[4]}],c=ss[0].l;
+      for(var i=0;i<ss.length;i++)if(p>=ss[i].p)c=ss[i].l;
+      var e=function(id){return document.getElementById(id)};
+      if(e('pf'))e('pf').style.width=pct+'%';if(e('pc'))e('pc').textContent=pct+'%';
+      if(e('sg'))e('sg').textContent=c;if(e('st2'))e('st2').textContent='Diffusion step '+Math.round(p*50)+'/50';
+    }else if(fA==='2'){
+      var e2=function(id){return document.getElementById(id)};
+      if(p<=.4){var bl=20-(p/.4)*15;if(e2('bg'))e2('bg').style.filter='blur('+bl+'px)';if(e2('sn2')){e2('sn2').style.filter='blur('+(16-(p/.4)*10)+'px)';e2('sn2').style.opacity=.3+(p/.4)*.4}if(e2('sl'))e2('sl').style.top=(p/.4*85)+'%';if(e2('lb'))e2('lb').textContent='Early structure \u00b7 '+pct+'%';if(e2('ds'))e2('ds').textContent='Structural features emerging\u2026'}
+      else{if(e2('bg'))e2('bg').style.filter='blur(5px)';if(e2('sl'))e2('sl').style.opacity='0';if(e2('lb'))e2('lb').textContent='Processing \u00b7 '+pct+'%';if(e2('ds'))e2('ds').textContent='Refining generation\u2026'}
+    }else{
+      var bs=t.n,bd=1/bs.length;
+      for(var i=0;i<bs.length;i++){var s2=i*bd,bk=document.getElementById('bk'+i),bx=document.getElementById('bx'+i);if(!bk||!bx)continue;
+        if(p>=s2){if(!bk.classList.contains('v'))bk.classList.add('v');var bp=Math.min((p-s2)/(bd*.85),1),tg=Math.floor(bp*bs[i].x.length);if(tg>ci[i]){ci[i]=tg;bx.innerHTML=tg>=bs[i].x.length?bs[i].x:bs[i].x.substring(0,tg)+'<span class="cur">|</span>'}}}
+    }
+    if(fB==='2'){if(!n1&&p>=.33){n1=true;showDec()}if(!n2&&p>=.66){n2=true;showDec()}}
+    if(p>=1){clr();showRes(t);return}
+    af=requestAnimationFrame(tick);
+  }
+  af=requestAnimationFrame(tick);
+}
+
+function showRes(t){
+  document.getElementById('abtx').textContent='Generation complete \u2713';
+  setTimeout(function(){
+    document.getElementById('ac').innerHTML='<div class="pb"><p class="pl">Your prompt</p><p class="pt">\u201c'+t.p+'\u201d</p></div><div class="ri"><img src="'+t.img+'" alt="Generated image"><div class="ck">\u2713</div></div><p class="rt">Image generated successfully</p>';
+    setTimeout(function(){ti++;if(ti>=6){toast('\u2705 A'+fA+'B'+fB+' \u2014 6 tasks completed');show('pick')}else showTask()},2200);
+  },500);
+}
+
+function showDec(){pau=true;pauT=el();document.getElementById('dov').classList.add('on');var r=5,tm=document.getElementById('dtm');tm.textContent='Auto-continue: '+r+'s';dcI=setInterval(function(){r--;tm.textContent='Auto-continue: '+r+'s';if(r<=0)decide('c')},1000)}
+function decide(c){if(dcI)clearInterval(dcI);dcI=null;document.getElementById('dov').classList.remove('on');if(c==='a'){clr();showRes(T[order[ti]]);return}totP+=Date.now()-(sT+pauT+totP);pau=false}
+</script>
+</body>
+</html>
