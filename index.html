@@ -30,9 +30,11 @@ body{font-family:'Noto Sans TC','Inter',sans-serif;background:#08080d;color:#e0e
 .cg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
 .cb{background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 6px;text-align:center;cursor:pointer;transition:all .15s}
 .cb:active{border-color:#6C63FF;background:rgba(108,99,255,.08)}
-.cb .cd{font-size:15px;font-weight:700;color:#fff;font-family:'Inter',monospace;margin-bottom:2px}
-.cb .cf{font-size:10px;color:#9590FF;margin-bottom:1px}
-.cb .cl{font-size:10px;color:#444}
+.cb .cd{font-size:10px;font-weight:600;color:#9590FF;font-family:'Inter',monospace;margin-bottom:1px;letter-spacing:.3px}
+.cb .cf{font-size:9px;color:#555;margin-bottom:2px}
+.cb .cl{font-size:9px;color:#444}
+.cb .cn{font-size:28px;font-weight:700;color:#fff;font-family:'Inter',sans-serif;line-height:1;margin-bottom:4px}
+.cb .cnb{display:inline-block;background:rgba(108,99,255,.15);border:1.5px solid rgba(108,99,255,.35);border-radius:8px;padding:3px 10px;margin-bottom:4px}
 .tn{font-size:11px;color:#6C63FF;font-weight:600;letter-spacing:.5px;margin-bottom:8px}
 .tc{font-size:16px;color:#fff;font-weight:500;margin-bottom:4px}
 .tsc{font-size:13px;color:#666;margin-bottom:16px}
@@ -117,18 +119,18 @@ body{font-family:'Noto Sans TC','Inter',sans-serif;background:#08080d;color:#e0e
 
 <div class="scr" id="pick"><div class="vc"><div class="card" style="text-align:center">
   <p class="pT">選擇實驗條件</p>
-  <p class="pS">Select experimental condition</p>
+  <p class="pS">請依研究人員指示，點選您的編號</p>
   <p class="rh">B1 — 被動等待 Passive</p>
   <div class="cg">
-    <div class="cb" onclick="go('1','1')"><p class="cf">Procedural</p><p class="cd">A1B1</p><p class="cl">進度條</p></div>
-    <div class="cb" onclick="go('2','1')"><p class="cf">Generative</p><p class="cd">A2B1</p><p class="cl">視覺預覽</p></div>
-    <div class="cb" onclick="go('3','1')"><p class="cf">Interpretive</p><p class="cd">A3B1</p><p class="cl">語義敘述</p></div>
+    <div class="cb" onclick="go('1','1')"><div class="cnb"><p class="cn">1</p></div><p class="cd">A1B1</p><p class="cf">Procedural</p><p class="cl">進度條</p></div>
+    <div class="cb" onclick="go('2','1')"><div class="cnb"><p class="cn">2</p></div><p class="cd">A2B1</p><p class="cf">Generative</p><p class="cl">視覺預覽</p></div>
+    <div class="cb" onclick="go('3','1')"><div class="cnb"><p class="cn">3</p></div><p class="cd">A3B1</p><p class="cf">Interpretive</p><p class="cl">語義敘述</p></div>
   </div>
   <p class="rh">B2 — 決策節點 Decision Nodes</p>
   <div class="cg">
-    <div class="cb" onclick="go('1','2')"><p class="cf">Procedural</p><p class="cd">A1B2</p><p class="cl">進度條+決策</p></div>
-    <div class="cb" onclick="go('2','2')"><p class="cf">Generative</p><p class="cd">A2B2</p><p class="cl">預覽+決策</p></div>
-    <div class="cb" onclick="go('3','2')"><p class="cf">Interpretive</p><p class="cd">A3B2</p><p class="cl">敘述+決策</p></div>
+    <div class="cb" onclick="go('1','2')"><div class="cnb"><p class="cn">4</p></div><p class="cd">A1B2</p><p class="cf">Procedural</p><p class="cl">進度條+決策</p></div>
+    <div class="cb" onclick="go('2','2')"><div class="cnb"><p class="cn">5</p></div><p class="cd">A2B2</p><p class="cf">Generative</p><p class="cl">預覽+決策</p></div>
+    <div class="cb" onclick="go('3','2')"><div class="cnb"><p class="cn">6</p></div><p class="cd">A3B2</p><p class="cf">Interpretive</p><p class="cl">敘述+決策</p></div>
   </div>
   <button class="btn btn-g" onclick="show('intro')" style="font-size:13px;padding:12px">← 返回說明</button>
 </div></div></div>
