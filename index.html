@@ -102,6 +102,11 @@ body{font-family:'Noto Sans TC','Inter',sans-serif;background:#08080d;color:#e0e
 .toast{position:fixed;top:0;left:0;right:0;z-index:999;display:flex;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 20px 12px;pointer-events:none}
 .toast-inner{background:rgba(108,99,255,.92);color:#fff;font-size:13px;font-weight:500;padding:10px 20px;border-radius:12px;animation:slideD .4s ease;pointer-events:auto}
 @keyframes slideD{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.end-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 32px;text-align:center}
+.end-icon{font-size:64px;margin-bottom:24px;animation:pp .5s ease}
+.end-title{font-size:28px;font-weight:700;color:#fff;line-height:1.4;margin-bottom:16px}
+.end-sub{font-size:15px;color:#888;line-height:1.7}
+.end-rule{width:48px;height:3px;background:#6C63FF;border-radius:2px;margin:24px auto}
 </style>
 </head>
 <body>
@@ -156,6 +161,15 @@ body{font-family:'Noto Sans TC','Inter',sans-serif;background:#08080d;color:#e0e
     <p class="dtm" id="dtm">Auto-continue: 5s</p>
   </div></div>
 </div></div>
+</div></div>
+
+<div class="scr" id="end"><div class="vc">
+  <div class="end-wrap">
+    <div class="end-icon">🎉</div>
+    <h2 class="end-title">實驗已結束<br>感謝您的參與！</h2>
+    <div class="end-rule"></div>
+    <p class="end-sub">您已完成本次實驗的全部任務。<br>請告知研究人員您已完成，<br>並將裝置交還給工作人員。</p>
+  </div>
 </div></div>
 
 <script>
@@ -266,7 +280,7 @@ function showRes(t){
   document.getElementById('abtx').textContent='Generation complete \u2713';
   setTimeout(function(){
     document.getElementById('ac').innerHTML='<div class="pb"><p class="pl">Your prompt</p><p class="pt">\u201c'+t.p+'\u201d</p></div><div class="ri"><img src="'+t.img+'" alt="Generated image"><div class="ck">\u2713</div></div><p class="rt">Image generated successfully</p>';
-    setTimeout(function(){ti++;if(ti>=6){toast('\u2705 A'+fA+'B'+fB+' \u2014 6 tasks completed');show('pick')}else showTask()},2200);
+    setTimeout(function(){ti++;if(ti>=6){show('end')}else showTask()},2200);
   },500);
 }
 
